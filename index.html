@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <link rel="icon" type="image/png" href="https://www.pimarkets.io/favicon.ico"/>
     <title>PiMarkets® Reportes</title>
-    <script src="https://cdn.jsdelivr.net/npm/pi-markets@1.0.104/dist/pimarkets.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pi-markets@1.0.108/dist/pimarkets.min.js"></script>
     <script type="text/javascript">
         let timeLow = 0;
         let timeHigh = 32703676400;
@@ -60,6 +60,9 @@
                         break;
                     case "7":
                         await getUserDealsReport(nickname, month, year);
+                        break;
+                    case "8":
+                        await getDexReport();
                         break;
                     default:
                         alert("Ningún tipo de reporte elegido");
@@ -120,6 +123,27 @@
             }
         }
 
+        async function getDexReport() {
+            let fromDate = document.getElementById("fromDate").value;
+            let toDate = document.getElementById("toDate").value;
+            let timeLow = getTimeFromString(fromDate);
+            let timeHigh = getTimeFromString(toDate);
+
+            let reportsService = new pimarkets.Report('mainnet');
+
+            try {
+                await reportsService.getDexReport(
+                    timeLow,
+                    timeHigh,
+                    pimarkets.Constants.BDVE_INSTRUMENTS,
+                    "dex"
+                )
+            } catch(error) {
+                console.error(error);
+                alert("ERROR");
+            }
+        }
+
         function hideDateSelector() {
             let monthSelector = document.getElementById("monthSelector");
             let yearSelector = document.getElementById("yearSelector");
@@ -129,7 +153,7 @@
             if ((reportSelector == 1) || (reportSelector == 5) || (reportSelector == 6) || (reportSelector == 7)) {
                 monthSelector.style.visibility = 'visible';
                 yearSelector.style.visibility = 'visible';
-            } else if ((reportSelector == 2) || (reportSelector == 3) || (reportSelector == 4)) {
+            } else if ((reportSelector == 2) || (reportSelector == 3) || (reportSelector == 4) || (reportSelector == 8)) {
                 monthSelector.style.visibility = 'hidden';
                 yearSelector.style.visibility = 'hidden';
             }
@@ -138,6 +162,18 @@
                 showNicknameInput();
             } else {
                 hideNicknameInput();
+            }
+
+            if (reportSelector != 8) {
+                hideDateInputs();
+            } else {
+                showDateInputs();
+            }
+
+            if (reportSelector == 0) {
+                hideNicknameInput();
+                monthSelector.style.visibility = 'hidden';
+                yearSelector.style.visibility = 'hidden';
             }
         }
 
@@ -149,6 +185,26 @@
         function hideNicknameInput() {
             let selectorElement = document.getElementById("nicknameInput");
             selectorElement.style.visibility = 'hidden';
+        }
+
+        function hideDateInputs() {
+            let selectorElement = document.getElementById("fromDate");
+            selectorElement.style.visibility = 'hidden';
+            let selectorElement2 = document.getElementById("toDate");
+            selectorElement2.style.visibility = 'hidden';
+        }
+
+        function showDateInputs() {
+            let selectorElement = document.getElementById("fromDate");
+            selectorElement.style.visibility = 'visible';
+            let selectorElement2 = document.getElementById("toDate");
+            selectorElement2.style.visibility = 'visible';
+        }
+
+        function getTimeFromString(dateString) {
+            date = dateString.split("/");
+            let dateObj = new Date( date[2], date[1] - 1, date[0]);
+            return dateObj.getTime() / 1000;
         }
 
         function getUtcTime() {
@@ -210,6 +266,14 @@
             text-align-last:center;
         }
 
+        .mySelectorHidden {
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 400;
+            width: 150px;
+            font-size: 16px;
+            visibility: hidden
+        }
+
         .myCheckbox {
             font-color: white;
             background-color: green;
@@ -244,7 +308,7 @@
         <br>
         <br>
         <img src="https://pimarkets.io/assets/img/logo-positive.png" width="250" height="50">
-        <h4>- Reportes v1.0.104 -</h4>
+        <h4>- Reportes v1.0.108 -</h4>
         <br>
         <select class="mySelector" name="reportSelector" id="reportSelector"  onchange="hideDateSelector();">
             <option value="0">Tipo</option>
@@ -253,17 +317,18 @@
             <option value="3">Tenedores (Packable)</option>
             <option value="4">Tenedores (Coleccionable)</option>
             <option value="7">Usuario</option>
+            <option value="8">DEX</option>
         </select>
         <br>
         <br>
-        <select class="mySelector" name="yearSelector" id="yearSelector">
+        <select class="mySelectorHidden" name="yearSelector" id="yearSelector">
             <option value="0">Año</option>
             <option value="2020">2020</option>
             <option value="2021">2021</option>
         </select>
         <br>
         <br>
-        <select class="mySelector" name="monthSelector" id="monthSelector">
+        <select class="mySelectorHidden" name="monthSelector" id="monthSelector">
             <option value="0">Mes</option>
             <option value="1">Enero</option>
             <option value="2">Febrero</option>
@@ -280,7 +345,13 @@
         </select>
         <br>
         <br>
-        <input id="nicknameInput" placeholder="Wallet" style="text-align:center; font-size:15px; border-radius: 6px; height:25px"></input>
+        <input id="nicknameInput" placeholder="Wallet" style="visibility:hidden; text-align:center; font-size:15px; border-radius: 6px; height:25px"></input>
+        <br>
+        <br>
+        <input type="text" class="redondeadonorelieve" id="fromDate" placeholder="Desde (dd/mm/yyyy)" style="visibility:hidden; text-align:center; font-size:15px; border-radius: 6px; height:25px">
+        <br>
+        <br>
+        <input type="text" class="redondeadonorelieve" id="toDate" placeholder="Hasta (dd/mm/yyyy)" style="visibility:hidden; text-align:center; font-size:15px; border-radius: 6px; height:25px">
         <br>
         <br>
         <div style="color: white;" id="wait"></div>
